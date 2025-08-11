@@ -1,0 +1,9 @@
+{
+	"name": "AzdataFacy",
+	"location": "southindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "7601f32a-9f7a-405c-991f-e440b7e1e421",
+		"tenantId": "ef3e4a00-1bdf-459f-922b-19ca000f66e1"
+	}
+}
