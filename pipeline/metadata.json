@@ -110,13 +110,7 @@
 							"outputs": [
 								{
 									"referenceName": "Sinkdata",
-									"type": "DatasetReference",
-									"parameters": {
-										"sinkfname": {
-											"value": "@item()",
-											"type": "Expression"
-										}
-									}
+									"type": "DatasetReference"
 								}
 							]
 						}
