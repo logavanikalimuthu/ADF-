@@ -112,10 +112,6 @@
 									"referenceName": "Sinkdata",
 									"type": "DatasetReference",
 									"parameters": {
-										"folder": {
-											"value": "@item()",
-											"type": "Expression"
-										},
 										"sinkfname": {
 											"value": "@item()",
 											"type": "Expression"
