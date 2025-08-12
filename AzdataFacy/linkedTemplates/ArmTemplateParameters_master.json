@@ -5,6 +5,9 @@
 		"factoryName": {
 			"value": "AzdataFacy"
 		},
+		"AzureBlobStorage1_connectionString": {
+			"value": ""
+		},
 		"AzureBlob_link_service_connectionString": {
 			"value": ""
 		},

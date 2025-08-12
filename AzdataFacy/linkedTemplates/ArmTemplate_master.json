@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "AzdataFacy"
 		},
+		"AzureBlobStorage1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
+		},
 		"AzureBlob_link_service_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureBlob_link_service'"
@@ -45,6 +49,9 @@
 				"parameters": {
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
+					},
+					"AzureBlobStorage1_connectionString": {
+						"value": "[parameters('AzureBlobStorage1_connectionString')]"
 					},
 					"AzureBlob_link_service_connectionString": {
 						"value": "[parameters('AzureBlob_link_service_connectionString')]"

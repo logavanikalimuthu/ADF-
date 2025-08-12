@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "AzdataFacy"
 		},
+		"AzureBlobStorage1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
+		},
 		"AzureBlob_link_service_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'AzureBlob_link_service'"
@@ -24,6 +28,19 @@
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureBlobStorage1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/AzureBlob_link_service')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
@@ -53,6 +70,33 @@
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Folderdata')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "input"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/Sdata')]",
@@ -91,12 +135,12 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/Sourcedataset')]",
+			"name": "[concat(parameters('factoryName'), '/Sourcefiledataset')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "AzureBlob_link_service",
+					"referenceName": "AzureBlobStorage1",
 					"type": "LinkedServiceReference"
 				},
 				"parameters": {
@@ -113,7 +157,7 @@
 							"value": "@dataset().filename",
 							"type": "Expression"
 						},
-						"container": "inputfiles"
+						"container": "input"
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
@@ -123,7 +167,7 @@
 				"schema": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureBlob_link_service')]"
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
 			]
 		},
 		{
@@ -214,16 +258,16 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/sindata')]",
+			"name": "[concat(parameters('factoryName'), '/sinkdata')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"linkedServiceName": {
-					"referenceName": "AzureBlob_link_service",
+					"referenceName": "AzureBlobStorage1",
 					"type": "LinkedServiceReference"
 				},
 				"parameters": {
-					"filenamesink": {
+					"sinkfname": {
 						"type": "string"
 					}
 				},
@@ -233,10 +277,10 @@
 					"location": {
 						"type": "AzureBlobStorageLocation",
 						"fileName": {
-							"value": "@dataset().filenamesink",
+							"value": "@dataset().sinkfname",
 							"type": "Expression"
 						},
-						"container": "outputfiles"
+						"container": "metadata"
 					},
 					"columnDelimiter": ",",
 					"escapeChar": "\\",
@@ -246,45 +290,18 @@
 				"schema": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureBlob_link_service')]"
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/folderdata')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "AzureBlob_link_service",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"container": "inputfiles"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureBlob_link_service')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Parameter')]",
+			"name": "[concat(parameters('factoryName'), '/metadata')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"activities": [
 					{
-						"name": "Copy data1",
-						"type": "Copy",
+						"name": "Get Metadata1",
+						"type": "GetMetadata",
 						"dependsOn": [],
 						"policy": {
 							"timeout": "0.12:00:00",
@@ -295,73 +312,32 @@
 						},
 						"userProperties": [],
 						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "AzureBlobStorageReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobStorageWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "Sourcedataset",
-								"type": "DatasetReference",
-								"parameters": {
-									"filename": {
-										"value": "@pipeline().parameters.sourcefile",
-										"type": "Expression"
-									}
-								}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "dynamout",
+							"dataset": {
+								"referenceName": "Folderdata",
 								"type": "DatasetReference",
 								"parameters": {}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobStorageReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "DelimitedTextReadSettings"
 							}
-						]
+						}
 					}
 				],
 				"policy": {
 					"elapsedTimeMetric": {}
 				},
-				"parameters": {
-					"sourcefile": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"lastPublishTime": "2025-08-06T11:49:55Z"
+				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/Sourcedataset')]",
-				"[concat(variables('factoryId'), '/datasets/dynamout')]"
+				"[concat(variables('factoryId'), '/datasets/Folderdata')]"
 			]
 		},
 		{
@@ -440,52 +416,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/inp')]",
 				"[concat(variables('factoryId'), '/datasets/out')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/metadata')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Get Metadata1",
-						"type": "GetMetadata",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"dataset": {
-								"referenceName": "folderdata",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"fieldList": [
-								"childItems"
-							],
-							"storeSettings": {
-								"type": "AzureBlobStorageReadSettings",
-								"enablePartitionDiscovery": false
-							},
-							"formatSettings": {
-								"type": "DelimitedTextReadSettings"
-							}
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/folderdata')]"
 			]
 		}
 	]
