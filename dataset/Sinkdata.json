@@ -22,10 +22,7 @@
 					"value": "@dataset().sinkfname",
 					"type": "Expression"
 				},
-				"container": {
-					"value": "@dataset().folder",
-					"type": "Expression"
-				}
+				"container": "metadata"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",
